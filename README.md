@@ -1,6 +1,6 @@
 # WatchLog API
 
-API REST desenvolvida para a disciplina de Desenvolvimento Web — UEPB 2026.1.
+API REST desenvolvida para o projeto "WatchLog" da disciplina de Programação Web.
 
 ## Sobre
 
