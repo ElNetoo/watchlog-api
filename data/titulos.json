@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "nome": "Interstellar",
+    "tipo": "filme",
+    "genero": "Ficção Científica",
+    "plataforma": "Prime Video",
+    "status": "assistido",
+    "nota": "5",
+    "usuarioId": 1
+  }
+]
