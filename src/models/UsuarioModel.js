@@ -1,32 +1,15 @@
-import { readFileSync, writeFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const CAMINHO = join(__dirname, '../../data/usuarios.json');
-
-function ler() {
-  return JSON.parse(readFileSync(CAMINHO, 'utf-8'));
-}
-
-function salvar(dados) {
-  writeFileSync(CAMINHO, JSON.stringify(dados, null, 2));
-}
+import db from '../../database/db.js';
 
 export function listarUsuarios() {
-  return ler();
+  return db.prepare('SELECT * FROM usuarios').all();
 }
 
 export function buscarUsuarioPorEmail(email) {
-  return ler().find((u) => u.email === email);
+  return db.prepare('SELECT * FROM usuarios WHERE email = ?').get(email);
 }
 
 export function inserirUsuario(dados) {
-  const usuarios = ler();
-  const proximoId = usuarios.length > 0 ? Math.max(...usuarios.map((u) => u.id)) + 1 : 1;
-  const usuario = { id: proximoId, ...dados };
-  usuarios.push(usuario);
-  salvar(usuarios);
-  return usuario;
+  const stmt = db.prepare('INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)');
+  const result = stmt.run(dados.nome, dados.email, dados.senha);
+  return { id: result.lastInsertRowid, ...dados };
 }

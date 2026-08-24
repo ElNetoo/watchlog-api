@@ -1,54 +1,35 @@
-import { readFileSync, writeFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const CAMINHO = join(__dirname, '../../data/titulos.json');
-
-function ler() {
-  return JSON.parse(readFileSync(CAMINHO, 'utf-8'));
-}
-
-function salvar(dados) {
-  writeFileSync(CAMINHO, JSON.stringify(dados, null, 2));
-}
+import db from '../../database/db.js';
 
 export function listarTitulos() {
-  return ler();
+  return db.prepare('SELECT * FROM titulos').all();
 }
 
 export function buscarTituloPorId(id) {
-  return ler().find((t) => t.id === id);
+  return db.prepare('SELECT * FROM titulos WHERE id = ?').get(id);
 }
 
 export function listarTitulosPorUsuario(usuarioId) {
-  return ler().filter((t) => t.usuarioId === usuarioId);
+  return db.prepare('SELECT * FROM titulos WHERE usuarioId = ?').all(usuarioId);
 }
 
 export function inserirTitulo(dados) {
-  const titulos = ler();
-  const proximoId = titulos.length > 0 ? Math.max(...titulos.map((t) => t.id)) + 1 : 1;
-  const titulo = { id: proximoId, ...dados };
-  titulos.push(titulo);
-  salvar(titulos);
-  return titulo;
+  const stmt = db.prepare(
+    'INSERT INTO titulos (nome, tipo, genero, plataforma, status, nota, usuarioId) VALUES (?, ?, ?, ?, ?, ?, ?)'
+  );
+  const result = stmt.run(dados.nome, dados.tipo, dados.genero, dados.plataforma, dados.status, dados.nota, dados.usuarioId);
+  return { id: result.lastInsertRowid, ...dados };
 }
 
 export function atualizarTitulo(id, dados) {
-  const titulos = ler();
-  const index = titulos.findIndex((t) => t.id === id);
-  if (index === -1) return null;
-  titulos[index] = { ...titulos[index], ...dados };
-  salvar(titulos);
-  return titulos[index];
+  const stmt = db.prepare(
+    'UPDATE titulos SET nome = ?, tipo = ?, genero = ?, plataforma = ?, status = ?, nota = ? WHERE id = ?'
+  );
+  stmt.run(dados.nome, dados.tipo, dados.genero, dados.plataforma, dados.status, dados.nota, id);
+  return buscarTituloPorId(id);
 }
 
 export function removerTitulo(id) {
-  const titulos = ler();
-  const index = titulos.findIndex((t) => t.id === id);
-  if (index === -1) return null;
-  const removido = titulos.splice(index, 1)[0];
-  salvar(titulos);
-  return removido;
+  const titulo = buscarTituloPorId(id);
+  db.prepare('DELETE FROM titulos WHERE id = ?').run(id);
+  return titulo;
 }
